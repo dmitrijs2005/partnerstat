@@ -73,10 +73,6 @@ def search(request):
                 qd = views.filter(date=d)
                 qs = qd.filter(stream_type=stream_type)
 
-                # for st in ['vod', 'live']:
-                #     date['total_streams_percentage_' + st] = '0%'
-
-
                 if qs:
                     qs = qs[0]
                     date['total_user_qty'] = qs.user_qty
@@ -110,7 +106,7 @@ def search(request):
                             date['total_streams_' + st] = qs.total_streams
 
                             if date['total_streams_all'] > 0:
-                                date['total_streams_percentage_' + st] = '(' + str((date['total_streams_' + st] / date['total_streams_all']) * 100) + '%)'
+                                date['total_streams_percentage_' + st] = '(' + str(round((date['total_streams_' + st] / date['total_streams_all']) * 100,2)) + '%)'
 
                             date['avg_played_seconds_' + st] = seconds_to_hms(qs.avg_played_seconds)
                             date['max_played_seconds_' + st] = seconds_to_hms(qs.max_played_seconds)
