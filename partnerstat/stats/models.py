@@ -41,5 +41,5 @@ class Viewing(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{date} - {stream_type}'.format(date=self.date, stream_type=self.stream_type)
+        return '{date} - {stream_type} - {threshold}'.format(date=self.date, stream_type=self.stream_type, threshold=self.threshold)
 

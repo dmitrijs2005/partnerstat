@@ -138,8 +138,6 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'partnerstat/static'),
 )
 
-print(STATICFILES_DIRS)
-
 LOGOUT_REDIRECT_URL = 'search'
 
 try:
