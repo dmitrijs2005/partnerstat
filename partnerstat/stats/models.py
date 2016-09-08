@@ -20,9 +20,19 @@ THRESHOLD_CHOICES = (
     (FIVE_MINUTES, '5 minutes'),
 )
 
+DOMAIN_CHOICES = (
+    ('etvnet', 'Etvnet'),
+    ('actavatv', 'ActavaTV')
+)
 
 class Viewing(models.Model):
     date = models.DateField('date')
+    domain = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        choices=DOMAIN_CHOICES,
+    )
     threshold = models.IntegerField(
         default=ZERO_MINUTES,
         choices=THRESHOLD_CHOICES
