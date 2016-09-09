@@ -25,6 +25,7 @@ DOMAIN_CHOICES = (
     ('actavatv', 'ActavaTV')
 )
 
+
 class Viewing(models.Model):
     date = models.DateField('date')
     domain = models.CharField(
@@ -53,3 +54,5 @@ class Viewing(models.Model):
     def __str__(self):
         return '{date} - {stream_type} - {threshold}'.format(date=self.date, stream_type=self.stream_type, threshold=self.threshold)
 
+    class Meta:
+        unique_together = ("date", "domain", "threshold", "stream_type")

@@ -70,7 +70,7 @@ def search(request):
 
                 date = {'date': d}
 
-                qd = views.filter(date=d)
+                qd = views.filter(date=d,domain='actava')
                 qs = qd.filter(stream_type=stream_type)
 
                 if qs:
