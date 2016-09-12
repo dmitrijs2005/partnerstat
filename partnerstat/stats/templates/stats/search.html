@@ -96,7 +96,7 @@ Viewing statistics
 <script src="{% static 'partnerstat/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
 
 <script>
-    var format = {startView: '-0d'};
+    var format = {startView: '-0d', todayHighlight: true, autoclose: true};
     $('#id_date_from,#id_date_to').datepicker(format);
 </script>
 
