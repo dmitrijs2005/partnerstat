@@ -9,14 +9,14 @@ import urllib.request
 from urllib.request import urlopen
 from django.http import JsonResponse
 import urllib.parse
-from datetime import datetime
+
 
 # Create your views here.
 
 from .forms import ViewsSearchForm
 
 def date_from_iso(d):
-    return datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").strftime("%d %b %Y %H:%M")
+    return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").strftime("%d %b %Y %H:%M")
 
 @login_required(login_url="/login/")
 def index(request):
@@ -54,8 +54,6 @@ def user_list_json(request):
     resp['data'] = []
 
     for u in user_list['results']:
-
-        print(u)
 
         x = {}
         x['id'] = u['id']
@@ -106,8 +104,6 @@ def user_views_json(request):
     # views
     url = getattr(settings, 'CDN_STATS_URL') + '/user/DetailsJson?%s' % params
 
-    # print(url)
-
     # views
     req = urllib.request.Request(url)
 
@@ -123,8 +119,6 @@ def user_views_json(request):
             status = err.code
         else:
             raise
-
-    # print(resp['items'])
 
     import json
     jresp = json.loads(resp.decode("utf-8"))
