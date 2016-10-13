@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block page_header %}
+Viewing statistics
+{% endblock %}
+
+{% block content %}
+
+<div class="search_form">
+    <form action = "/stats/search/" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Search" />
+    </form>
+</div>
+
+<div class="search_results">
+{% if not rows %}
+    No results found
+{% endif %}
+
+{% if rows %}
+
+<table class="table table-striped table-bordered">
+
+    <tr>
+        <th colspan="3"></th>
+        <th colspan="3">Requested stream qty</th>
+        <th colspan="3">Average playback duration</th>
+        <th colspan="3">Total playback duration</th>
+        <th colspan="3">Maximum playback duration</th>
+    </tr>
+
+    <tr>
+        <th>Date</th>
+        <th>User Qty</th>
+        <th>IP Qty</th>
+
+        <th>total</th>
+        <th>vod</th>
+        <th>live</th>
+
+        <th>total</th>
+        <th>vod</th>
+        <th>live</th>
+
+        <th>total</th>
+        <th>vod</th>
+        <th>live</th>
+
+        <th>total</th>
+        <th>vod</th>
+        <th>live</th>
+    </tr>
+
+    {% for r in rows %}
+
+    <tr>
+
+        <td>{{ r.date|date:"D d M Y" }}</td>
+        <td>{{ r.total_user_qty }}</td>
+        <td>{{ r.total_ips_qty }}</td>
+
+        <td>{{ r.total_streams_all }} (100%)</td>
+        <td>{{ r.total_streams_vod }} {{r.total_streams_percentage_vod}}</td>
+        <td>{{ r.total_streams_live }} {{r.total_streams_percentage_live}}</td>
+
+        <td>{{ r.avg_played_seconds_all }}</td>
+        <td>{{ r.avg_played_seconds_vod }}</td>
+        <td>{{ r.avg_played_seconds_live }}</td>
+
+        <td>{{ r.total_played_seconds_all }}</td>
+        <td>{{ r.total_played_seconds_vod }}</td>
+        <td>{{ r.total_played_seconds_live }}</td>
+
+        <td>{{ r.max_played_seconds_all }}</td>
+        <td>{{ r.max_played_seconds_vod }}</td>
+        <td>{{ r.max_played_seconds_live }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endif %}
+
+    </div>
+
+{% endblock %}
+
+{% block custom_scripts %}
+<link href="{% static 'partnerstat/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet">
+<script src="{% static 'partnerstat/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+
+<script>
+    var format = {startView: '-0d', todayHighlight: true, autoclose: true};
+    $('#id_date_from,#id_date_to').datepicker(format);
+</script>
+
+{% endblock %}

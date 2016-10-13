@@ -37,7 +37,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'stats',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'stats',
 ]
 
 MIDDLEWARE = [
@@ -73,6 +73,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'app_filters': 'partnerstat.common.app_filters',
+            },
         },
     },
 ]
@@ -139,6 +142,15 @@ STATICFILES_DIRS = (
 )
 
 LOGOUT_REDIRECT_URL = 'search'
+
+WEBSITE_API_ENDPOINT = 'xxx'
+WEBSITE_API_AUTENTICATION_USER_ID = 'xxx'
+WEBSITE_API_CRM_AUTHENTICATION_USER_SECRET = 'xxx'
+
+CDN_STATS_PARTNER_ID = 'xxx'
+CDN_STATS_PARTNER_KEY = 'xxx'
+CDN_STATS_URL = 'xxx'
+
 
 try:
     from partnerstat.settings_local import *

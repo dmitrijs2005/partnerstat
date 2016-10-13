@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block page_header %}
+Users
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
+
+<style>
+    .field_select {
+        margin-left: 20px;
+        float:  right;
+    }
+</style>
+
+<table id="example" class="display table table-striped table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>User name</th>
+            <th>Last name</th>
+            <th>First name</th>
+            <th>Plan</th>
+            <th>Plan status</th>
+            <th>E-mail</th>
+            <th>Date joined</th>
+        </tr>
+    </thead>
+</table>
+
+{% endblock %}
+
+{% block custom_scripts %}
+<script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    var columnsDef = [
+        {
+            "title": "User name",
+            "data": "username",
+            "render": function ( data, type, full, meta ) {
+                          return '<a href=/stats/users/'+full.id+'>' + data + '</a>';
+                        }
+         },
+         {
+            "title": "Last name",
+            "data": "last_name",
+         },
+          {
+            "title": "First name",
+            "data": "first_name",
+         },
+          {
+            "title": "Plan",
+            "data": "plan_name",
+         },
+       {
+            "title": "Plan status",
+            "data": "plan_status",
+         },
+       {
+            "title": "E-mail",
+            "data": "email",
+         },
+       {
+            "title": "Date joined",
+            "data": "date_joined_verbose",
+         },
+    ]
+
+    $('#example').DataTable( {
+        "columns": columnsDef,
+        "ordering": false,
+        "pageLength": 10,
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "/stats/users_json",
+            "data": function ( d ) {
+                d.filterBy = $("input[name='filter_by']:checked").val();
+            }
+        }
+
+    } );
+
+    filter = $(".dataTables_filter").first();
+    div = $( '<div class="field_select"></div>' ).insertBefore(filter)
+    $('<label class="radio-inline"><input type="radio" name="filter_by" id="inlineCheckbox1" value="username" checked> User name</label>').appendTo(div);
+    $('<label class="radio-inline"><input type="radio" name="filter_by" id="inlineCheckbox2" value="first_name"> Name</label>').appendTo(div);
+    $('<label class="radio-inline"><input type="radio" name="filter_by" id="inlineCheckbox3" value="email"> Email</label>').appendTo(div);
+
+    $('input[type=radio][name=filter_by]').change(function() {
+        var api = $("#example").dataTable().api();
+        api.draw();
+    });
+
+
+} );
+</script>
+
+
+
+{% endblock %}
