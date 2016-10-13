@@ -31,6 +31,8 @@ class HTTPCient(object):
     def request(self, path, method=None, data=None, *a, **k):
 
             url = urljoin(self.base_url, path)
+            print ('url: %s' % url)
+
 
             if data is not None:
                 if method in ['POST', 'PUT']:
@@ -53,6 +55,7 @@ class HTTPCient(object):
                 resp = connection.read()
                 connection.close()
                 status = 200
+
             except urllib.error.HTTPError as err:
 
                 if err.code == 400:
