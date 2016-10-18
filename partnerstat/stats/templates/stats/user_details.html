@@ -25,53 +25,86 @@ User details
         <tr>
             <th>Date, time</th>
             <th>IP</th>
+            <th>Type</th>
             <th>Name</th>
             <th>Plan</th>
             <th>Bitrate</th>
             <th>Time</th>
+            <th>Avg. bandwidth</th>
         </tr>
     </thead>
 </table>
+
+<!-- Modal HTML -->
+<div id="mdlShowTs" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Stream details</h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 {% block custom_scripts %}
 <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
 
 <script>
+
+    function format ( d ) {
+        return 'Location: ' + d.location + '<br/>' +
+        'User agent: ' + d.user_agent;
+    }
+
     $( document ).ready(function() {
 
         var columnsDef = [
-        {
-            "title": "Date, time",
-            "data": "created_utc",
+            {
+                "title": "Date, time",
+                "data": "created_utc"
+            },
+          {
+                "title": "IP",
+                "data": "client_ip"
+            },
+          {
+                "title": "Type",
+                "data": "stream_type"
+            },
+            {
+                "title": "Name",
+                "data": "media_object_name"
+            },
+            {
+                "title": "Plan name",
+                "data": "media_packet_name"
+            },
+            {
+               "title": "Bitrate",
+                "data": "bitrate_id"
+            },
+            {
+                "title": "Time",
+                "data": "played_seconds"
+            },
+            {
+                "title": "Avg. bandwidth",
+                "data": "avg_bandwidth",
             "render": function ( data, type, full, meta ) {
-                          return '<a href=/stats/users/'+full.id+'>' + data + '</a>';
+                          return '<a href="#" class="show-ts" data-stream-id="' + full.id + '">' + data + '</a>';
                         }
-         },
-                  {
-            "title": "IP",
-            "data": "client_ip"
-         },
-         {
-            "title": "Name",
-            "data": "media_object_name"
-         },
-      {
-            "title": "Plan name",
-            "data": "media_packet_name"
-         },
-               {
-            "title": "Bitrate",
-            "data": "bitrate_id"
-         },
-         {
-            "title": "Time",
-            "data": "played_seconds"
-         },
+            },
         ]
 
-        $('#example').DataTable( {
+        var dt = $('#example').DataTable( {
             "columns": columnsDef,
             "ordering": false,
             "searching": false,
@@ -80,8 +113,37 @@ User details
             "serverSide": true,
             "ajax": {
                 "url": "/stats/views_json?id={{ result.id }}"
+            },
+            "rowCallback": function( row, data, index ) {
+                r = this.DataTable().row(row);
+                r.child(format(data)).show();
             }
+        });
 
+
+        $('body').on('click', 'a.show-ts', function() {
+            $('#mdlShowTs').attr('data-stream-id', $(this).attr("data-stream-id"));
+            $('#mdlShowTs').modal('show');
+            return false;
+        });
+
+        $('#mdlShowTs').on('hidden.bs.modal', function () { $(this).find('.modal-body').html(""); });
+
+        $('#mdlShowTs').on('shown.bs.modal', function () {
+
+            $(this).find('.modal-body').html('<div><img src="{% static 'partnerstat/img/waiting.gif' %}" alt="waiting.gif"></div>');
+
+            $(this).find('.modal-dialog').css({
+                width: 'auto',
+                height: 'auto',
+                'max-height': '100%',
+                'max-width': '90%'
+            });
+            var source = "/stats/show_ts?id=" + $(this).attr('data-stream-id');
+
+            $.get(source, function (data) {
+                $('#mdlShowTs').find('.modal-body').html(data);
+            });
         });
 
     });

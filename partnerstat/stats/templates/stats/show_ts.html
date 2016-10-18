@@ -1,0 +1,80 @@
+<div id="container" style="min-width: 400px; height: 600px; margin: 0 auto">Stream details</div>
+
+<script>
+    $(function () {
+        $('#container').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Chunk download time'
+            },
+            subtitle: {
+                text: 'seconds'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: 'Chunk download time (seconds)'
+                },
+                min: 0,
+                minorGridLineWidth: 1,
+                gridLineWidth: 1,
+                alternateGridColor: null,
+            },
+            tooltip: {
+                valueSuffix: ' seconds'
+            },
+            plotOptions: {
+                spline: {
+                    lineWidth: 4,
+                    states: {
+                        hover: {
+                            lineWidth: 5
+                        }
+                    },
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+            series: [{
+                name: 'Stream',
+                pointWidth: 3,
+                data: [
+
+
+                {% for x in resp.TsData %}
+                [ Date.UTC({{ x.CreatedUtc|slice:":4" }}, {{ x.CreatedUtc|slice:"5:7" }}, {{ x.CreatedUtc|slice:"8:10" }}, {{ x.CreatedUtc|slice:"11:13" }}, {{ x.CreatedUtc|slice:"14:16" }}, {{ x.CreatedUtc|slice:"17:19" }}), {{ x.Time }} ],
+                {% endfor %}
+
+
+                    ]
+
+            }]
+            ,
+            navigation: {
+                menuItemStyle: {
+                    fontSize: '10px'
+                }
+            }
+        },function(chart){
+
+            var max = 10;
+
+            $.each(chart.series[0].data,function(i,data){
+
+                if(data.y > max)
+                    data.graphic.attr({
+                        fill:'red'
+                    });
+
+            });
+
+        });
+    });
+
+</script>
+

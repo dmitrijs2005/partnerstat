@@ -9,14 +9,24 @@ import urllib.request
 from urllib.request import urlopen
 from django.http import JsonResponse
 import urllib.parse
-
-
-# Create your views here.
-
+import json
+import pytz
 from .forms import ViewsSearchForm
+from django.http import Http404
+
 
 def date_from_iso(d):
-    return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").strftime("%d %b %Y %H:%M")
+    return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").strftime("%d %b %Y %H:%M:%S")
+
+def date_from_iso_utc_to_eastern(d):
+    return utc_to_eastern(datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")).strftime("%d %b %Y %H:%M:%S")
+
+def utc_to_eastern(dt):
+    gmt = pytz.timezone('GMT')
+    eastern = pytz.timezone('US/Eastern')
+    dategmt = gmt.localize(dt)
+    dateeastern = dategmt.astimezone(eastern)
+    return dateeastern
 
 @login_required(login_url="/login/")
 def index(request):
@@ -71,18 +81,68 @@ def user_list_json(request):
     response = JsonResponse(resp)
     return response
 
+
+def _gen_hash(*args):
+    private_key = getattr(settings, 'CDN_STATS_PARTNER_KEY')
+    ars = list((private_key,))
+    ars.extend(args)
+    st = ''.join([str(x).lower() for x in ars])
+    ars.extend(st)
+    st = md5(st.encode('utf-8')).hexdigest()
+    return st
+
+
+@login_required(login_url="/login/")
+def show_ts(request):
+    # url = 'http://10.77.9.20:81/StreamDetail/DetailsJson/m_14_meta_test_cc2bd52d8c01163104f2d3edfa5611c1'
+
+    # views
+    # url = getattr(settings, 'CDN_STATS_URL') + '/user/DetailsJson?%s' % params
+    #
+    # print(url)
+
+    # stream_id = 'lm_15_1494312_VE1HJFVKXTBcTkJdIDRTRy5NR1VTRlVFXEpFUldDV0U='
+    stream_id = request.GET['id']
+
+    partnerid = getattr(settings, 'CDN_STATS_PARTNER_ID')
+
+    hashparam = _gen_hash(stream_id)
+    params = urllib.parse.urlencode({'partnerid': partnerid,
+                                     'streamid': stream_id,
+                                     'hashparam': hashparam})
+
+    # views
+    url = getattr(settings, 'CDN_STATS_URL') + '/StreamDetail/DetailsJson?%s' % params
+    # url = 'http://10.77.9.20:81' + '/StreamDetail/DetailsJson?%s' % params
+
+    # print(url)
+
+    # views
+    req = urllib.request.Request(url)
+
+    try:
+        connection = urlopen(req)
+        resp = connection.read()
+        connection.close()
+        status = 200
+    except urllib.error.HTTPError as err:
+
+        if err.code == 400:
+            resp = err.read()
+            status = err.code
+        else:
+            raise
+
+    jresp = json.loads(resp.decode("utf-8"))
+
+    # print(jresp)
+
+    context = {'resp': jresp}
+    return render(request, 'stats/show_ts.html', context)
+
+
 @login_required(login_url="/login/")
 def user_views_json(request):
-
-    def _gen_hash(*args):
-
-        private_key = getattr(settings, 'CDN_STATS_PARTNER_KEY')
-        ars = list((private_key,))
-        ars.extend(args)
-        st = ''.join([str(x).lower() for x in ars])
-        ars.extend(st)
-        st = md5(st.encode('utf-8')).hexdigest()
-        return st
 
     start = request.GET.get('start', 0)
     draw = request.GET.get('draw', 1)
@@ -137,13 +197,29 @@ def user_views_json(request):
     items = jresp['items']
 
     for i in items:
+
         x = {}
-        x['created_utc'] = date_from_iso(i['CreatedUtc'][:19])
+        x['created_utc'] = date_from_iso_utc_to_eastern(i['CreatedUtc'][:19])
         x['media_object_name'] = i['MediaObject']['Name'] if i['MediaObject'] else None
         x['media_packet_name'] = i['MediaPacket']['Name'] if i['MediaPacket'] else None
         x['bitrate_id'] = i['BitrateId']
         x['played_seconds'] = i['PlayedSecondsStr']
+        x['avg_bandwidth'] = i['AvgBandwidthStr']
         x['client_ip'] = i['ClientIp']
+        x['user_agent'] = i['UserAgent']
+
+        x['location'] = ''
+        if i['ClientCountryCode']:
+            x['location'] += (i['ClientCountryCode'] + ', ')
+        if i['ClientRegionName']:
+            x['location'] += (i['ClientRegionName'] + ', ')
+        if i['ClientISP']:
+            x['location'] += (i['ClientISP'] + ', ')
+        if x['location']:
+            x['location'] = x['location'][:-2]
+
+        x['id'] = i['PpName']
+        x['stream_type'] = 'Live' if i['IsLiveStream'] else 'VOD '
 
         resp['data'].append(x)
 
@@ -153,11 +229,12 @@ def user_views_json(request):
 def is_support(user):
     return user.groups.filter(name='support').exists()
 
+
 @user_passes_test(is_support)
 @login_required(login_url="/login/")
 def user_list(request):
-
     return render(request, 'stats/user_list.html')
+
 
 @user_passes_test(is_support)
 @login_required(login_url="/login/")
@@ -165,6 +242,9 @@ def user_details(request, id):
 
     resource = UsersResourceClient()
     user_details =  resource.get_one_object(id)
+
+    if user_details['account']['domain'] != 'actava':
+        raise Http404("Poll does not exist")
 
     context = {}
     context['result'] = user_details
