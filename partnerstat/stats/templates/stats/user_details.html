@@ -15,7 +15,9 @@ User details
     <tr><td>Last name</td><td>{{ result.last_name }}</td></tr>
     <tr><td>Email</td><td>{{ result.email }}</td></tr>
     <tr><td>Plan</td><td>{{ result.account.plan_name }}</td></tr>
-    <tr><td>Plan status</td><td>{{ result.account.verbose_plan_status }}</td></tr>
+    <tr><td>Plan status</td><td><span class="label label-{% if result.account.plan_status == 4 %}success{% else %}danger{% endif %}
+
+">{{ result.account.verbose_plan_status }}</span></td></tr>
     <tr><td>Date joined</td><td>{{ date_joined }}</td></tr>
     <tr><td>Last login</td><td>{{ last_login }}</td></tr>
 </table>
