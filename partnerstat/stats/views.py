@@ -18,8 +18,10 @@ from django.http import Http404
 def date_from_iso(d):
     return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").strftime("%d %b %Y %H:%M:%S")
 
+
 def date_from_iso_utc_to_eastern(d):
     return utc_to_eastern(datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")).strftime("%d %b %Y %H:%M:%S")
+
 
 def utc_to_eastern(dt):
     gmt = pytz.timezone('GMT')
@@ -42,12 +44,16 @@ def user_list_json(request):
 
     draw = request.GET.get('draw', 1)
     per_page = request.GET.get('length', 10)
-    # domain = 1
-    domain = 8
+
+    params = {}
+    if request.user.userprofile:
+        domain = request.user.userprofile.domain
+        params['domain'] = domain
+
     start = request.GET.get('start', 0)
 
     page = int((int(start)/int(per_page)) + 1)
-    params = {'domain': domain, 'per_page': per_page, 'page': page}
+    params.update({'per_page': per_page, 'page': page})
 
     search_value = request.GET.get('search[value]', None)
     if search_value:
@@ -94,18 +100,9 @@ def _gen_hash(*args):
 
 @login_required(login_url="/login/")
 def show_ts(request):
-    # url = 'http://10.77.9.20:81/StreamDetail/DetailsJson/m_14_meta_test_cc2bd52d8c01163104f2d3edfa5611c1'
 
-    # views
-    # url = getattr(settings, 'CDN_STATS_URL') + '/user/DetailsJson?%s' % params
-    #
-    # print(url)
-
-    # stream_id = 'lm_15_1494312_VE1HJFVKXTBcTkJdIDRTRy5NR1VTRlVFXEpFUldDV0U='
     stream_id = request.GET['id']
-
     partnerid = getattr(settings, 'CDN_STATS_PARTNER_ID')
-
     hashparam = _gen_hash(stream_id)
     params = urllib.parse.urlencode({'partnerid': partnerid,
                                      'streamid': stream_id,
@@ -113,9 +110,6 @@ def show_ts(request):
 
     # views
     url = getattr(settings, 'CDN_STATS_URL') + '/StreamDetail/DetailsJson?%s' % params
-    # url = 'http://10.77.9.20:81' + '/StreamDetail/DetailsJson?%s' % params
-
-    # print(url)
 
     # views
     req = urllib.request.Request(url)
@@ -134,8 +128,6 @@ def show_ts(request):
             raise
 
     jresp = json.loads(resp.decode("utf-8"))
-
-    # print(jresp)
 
     context = {'resp': jresp}
     return render(request, 'stats/show_ts.html', context)
@@ -243,8 +235,8 @@ def user_details(request, id):
     resource = UsersResourceClient()
     user_details =  resource.get_one_object(id)
 
-    if user_details['account']['domain'] != 'actava':
-        raise Http404("Poll does not exist")
+    if user_details['account']['domain'] != request.user.userprofile.get_domain_display():
+        raise Http404("User does not exist")
 
     context = {}
     context['result'] = user_details
