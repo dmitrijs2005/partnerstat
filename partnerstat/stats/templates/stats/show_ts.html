@@ -67,8 +67,8 @@
             $.each(chart.series[0].data,function(i,data){
 
                 if(data.y > max)
-                    data.graphic.attr({
-                        fill:'red'
+                    data.update({
+                        color:'red'
                     });
 
             });
