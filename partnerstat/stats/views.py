@@ -221,6 +221,8 @@ def user_views_json(request):
 def is_support(user):
     return user.groups.filter(name='support').exists()
 
+def is_management(user):
+    return user.groups.filter(name='management').exists()
 
 @user_passes_test(is_support)
 @login_required(login_url="/login/")
@@ -245,7 +247,7 @@ def user_details(request, id):
 
     return render(request, 'stats/user_details.html', context)
 
-
+@user_passes_test(is_management)
 @login_required(login_url="/login/")
 def search(request):
 
