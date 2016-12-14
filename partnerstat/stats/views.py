@@ -245,7 +245,8 @@ def user_details(request, id):
     context = {}
     context['result'] = user_details
     context['date_joined'] = date_from_iso(user_details['date_joined'])
-    context['last_login'] = date_from_iso(user_details['last_login'])
+    if user_details['last_login']:
+        context['last_login'] = date_from_iso(user_details['last_login'])
 
     return render(request, 'stats/user_details.html', context)
 
